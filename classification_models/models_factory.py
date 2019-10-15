@@ -4,6 +4,7 @@ import keras_applications as ka
 from .models import resnet as rn
 from .models import resnext as rx
 from .models import senet as sn
+from .models import vgg16 as vgg16
 
 
 class ModelsFactory:
@@ -36,7 +37,8 @@ class ModelsFactory:
         'resnext101': [rx.ResNeXt101, rx.preprocess_input],
 
         # VGG
-        'vgg16': [ka.vgg16.VGG16, ka.vgg16.preprocess_input],
+        #'vgg16': [ka.vgg16.VGG16, ka.vgg16.preprocess_input],
+        'vgg16': [vgg16.VGG16, ka.vgg16.preprocess_input],
         'vgg19': [ka.vgg19.VGG19, ka.vgg19.preprocess_input],
 
         # Densnet
