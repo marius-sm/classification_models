@@ -1,4 +1,8 @@
 [![PyPI version](https://badge.fury.io/py/image-classifiers.svg)](https://badge.fury.io/py/image-classifiers) [![Build Status](https://travis-ci.com/qubvel/classification_models.svg?branch=master)](https://travis-ci.com/qubvel/classification_models) 
+# Some modifications of the original repo
+- Replaced batch norm by group norm in the resnets
+- Added an option to turn of the last relu in resnets and vgg16. Simply add last_relu=False when instantiating.
+
 # Classification models Zoo - Keras (and TensorFlow Keras)
 Trained on [ImageNet](http://www.image-net.org/) classification models. 
 The library is designed to work both with [Keras](https://keras.io/) and [TensorFlow Keras](https://www.tensorflow.org/guide/keras). See example below.
