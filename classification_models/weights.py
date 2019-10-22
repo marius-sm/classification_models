@@ -29,7 +29,7 @@ def load_model_weights(model, model_name, dataset, classes, include_top, **kwarg
             md5_hash=weights['md5']
         )
 
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
 
     else:
         raise ValueError('There is no weights for such configuration: ' +
