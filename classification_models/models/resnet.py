@@ -301,6 +301,7 @@ def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
 # -------------------------------------------------------------------------
 
 MODELS_PARAMS = {
+    'resnet10': ModelParams('resnet10', (1, 1, 1, 1), residual_conv_block, None),
     'resnet18': ModelParams('resnet18', (2, 2, 2, 2), residual_conv_block, None),
     'resnet34': ModelParams('resnet34', (3, 4, 6, 3), residual_conv_block, None),
     'resnet50': ModelParams('resnet50', (3, 4, 6, 3), residual_bottleneck_block, None),
@@ -309,6 +310,17 @@ MODELS_PARAMS = {
     'seresnet18': ModelParams('seresnet18', (2, 2, 2, 2), residual_conv_block, ChannelSE),
     'seresnet34': ModelParams('seresnet34', (3, 4, 6, 3), residual_conv_block, ChannelSE),
 }
+
+def ResNet10(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+    return ResNet(
+        MODELS_PARAMS['resnet10'],
+        input_shape=input_shape,
+        input_tensor=input_tensor,
+        include_top=include_top,
+        classes=classes,
+        weights=weights,
+        **kwargs
+    )
 
 
 def ResNet18(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):

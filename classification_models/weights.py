@@ -39,6 +39,17 @@ def load_model_weights(model, model_name, dataset, classes, include_top, **kwarg
 
 WEIGHTS_COLLECTION = [
 
+    # ResNet10
+    {
+        'model': 'resnet10',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': True,
+        'url': 'https://github.com/qubvel/classification_models/releases/download/0.0.1/resnet18_imagenet_1000.h5',
+        'name': 'resnet18_imagenet_1000.h5',
+        'md5': '64da73012bb70e16c901316c201d9803',
+    },
+
     # ResNet18
     {
         'model': 'resnet18',
