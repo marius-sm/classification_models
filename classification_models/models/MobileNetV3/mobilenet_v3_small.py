@@ -12,7 +12,7 @@ from model.mobilenet_base import MobileNetBase
 
 
 class MobileNetV3_Small(MobileNetBase):
-    def __init__(self, shape, n_class, alpha=1.0, include_top=True):
+    def __init__(self, shape, n_class=1000, alpha=1.0, include_top=True):
         """Init.
 
         # Arguments
