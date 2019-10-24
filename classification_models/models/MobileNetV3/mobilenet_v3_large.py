@@ -8,11 +8,11 @@ from keras.models import Model
 from keras.layers import Input, Conv2D, GlobalAveragePooling2D, Reshape
 from keras.utils.vis_utils import plot_model
 
-from mobilenet_base import MobileNetBase
+from .mobilenet_base import MobileNetBase
 
 
 class MobileNetV3_Large(MobileNetBase):
-    def __init__(self, shape, n_class=1000, alpha=1.0, include_top=True):
+    def __init__(self, shape=(None,None,3), n_class=1000, alpha=1.0, include_top=True):
         """Init.
 
         # Arguments
@@ -28,7 +28,7 @@ class MobileNetV3_Large(MobileNetBase):
         super(MobileNetV3_Large, self).__init__(shape, n_class, alpha)
         self.include_top = include_top
 
-    def build(self, plot=False):
+    def build(self, input_tensor=None, plot=False):
         """build MobileNetV3 Large.
 
         # Arguments
@@ -37,7 +37,11 @@ class MobileNetV3_Large(MobileNetBase):
         # Returns
             model: Model, model.
         """
-        inputs = Input(shape=self.shape)
+
+        if input_tensor is None:
+            input_tensor = Input(self.shape)
+        else:
+            inputs = input_tensor
 
         x = self._conv_block(inputs, 16, (3, 3), strides=(2, 2), nl='HS')
 
