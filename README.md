@@ -3,6 +3,7 @@
 - Replaced batch norm by group norm in the ResNets
 - Added an option to turn off the last relu in ResNets and VGG16. Simply add last_relu=False when instantiating.
 - Added ResNet10.
+- When instantiating a ResNet, one can know add group_norm=True/False and batch_norm=True/False
 
 # Classification models Zoo - Keras (and TensorFlow Keras)
 Trained on [ImageNet](http://www.image-net.org/) classification models. 
