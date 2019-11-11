@@ -59,7 +59,7 @@ def get_bn_params(**params):
 #   Residual blocks
 # -------------------------------------------------------------------------
 
-def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, cut='pre', group_norm=True, batch_norm=False):
+def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, cut='pre', group_norm=True, batch_norm=False, use_separable_convolutions=False):
     """The identity block is the block that has no conv layer at shortcut.
     # Arguments
         input_tensor: input tensor
@@ -72,6 +72,11 @@ def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, c
     # Returns
         Output tensor for the block.
     """
+
+    if use_separable_convolutions:
+        convolution = layers.SeparableConv2D
+    else:
+        convolution = layers.Conv2D
 
     def layer(input_tensor):
 
@@ -95,13 +100,14 @@ def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, c
         if cut == 'pre':
             shortcut = input_tensor
         elif cut == 'post':
-            shortcut = layers.Conv2D(filters, (1, 1), name=sc_name, strides=strides, **conv_params)(x)
+            #shortcut = layers.SeparableConv2D(filters, (1, 1), name=sc_name, strides=strides, **conv_params)(x)
+            shortcut = convolution(filters, (1, 1), name=sc_name, strides=strides, **conv_params)(x)
         else:
             raise ValueError('Cut type not in ["pre", "post"]')
 
         # continue with convolution layers
         x = layers.ZeroPadding2D(padding=(1, 1))(x)
-        x = layers.Conv2D(filters, (3, 3), strides=strides, name=conv_name + '1', **conv_params)(x)
+        x = convolution(filters, (3, 3), strides=strides, name=conv_name + '1', **conv_params)(x)
 
         if group_norm:
             x = GroupNormalization(groups=32, axis=-1, name=gn_name + '2')(x)
@@ -110,7 +116,7 @@ def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, c
 
         x = layers.Activation('relu', name=relu_name + '2')(x)
         x = layers.ZeroPadding2D(padding=(1, 1))(x)
-        x = layers.Conv2D(filters, (3, 3), name=conv_name + '2', **conv_params)(x)
+        x = convolution(filters, (3, 3), name=conv_name + '2', **conv_params)(x)
 
         # use attention block if defined
         if attention is not None:
@@ -123,7 +129,7 @@ def residual_conv_block(filters, stage, block, strides=(1, 1), attention=None, c
     return layer
 
 
-def residual_bottleneck_block(filters, stage, block, strides=None, attention=None, cut='pre', group_norm=True, batch_norm=False):
+def residual_bottleneck_block(filters, stage, block, strides=None, attention=None, cut='pre', group_norm=True, batch_norm=False, use_separable_convolutions=False):
     """The identity block is the block that has no conv layer at shortcut.
     # Arguments
         input_tensor: input tensor
@@ -136,6 +142,11 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
     # Returns
         Output tensor for the block.
     """
+
+    if use_separable_convolutions:
+        convolution = layers.SeparableConv2D
+    else:
+        convolution = layers.Conv2D
 
     def layer(input_tensor):
 
@@ -158,12 +169,12 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
         if cut == 'pre':
             shortcut = input_tensor
         elif cut == 'post':
-            shortcut = layers.Conv2D(filters * 4, (1, 1), name=sc_name, strides=strides, **conv_params)(x)
+            shortcut = convolution(filters * 4, (1, 1), name=sc_name, strides=strides, **conv_params)(x)
         else:
             raise ValueError('Cut type not in ["pre", "post"]')
 
         # continue with convolution layers
-        x = layers.Conv2D(filters, (1, 1), name=conv_name + '1', **conv_params)(x)
+        x = convolution(filters, (1, 1), name=conv_name + '1', **conv_params)(x)
 
         if group_norm:
             x = GroupNormalization(groups=32, axis=-1, name=gn_name + '2')(x)
@@ -172,7 +183,7 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
 
         x = layers.Activation('relu', name=relu_name + '2')(x)
         x = layers.ZeroPadding2D(padding=(1, 1))(x)
-        x = layers.Conv2D(filters, (3, 3), strides=strides, name=conv_name + '2', **conv_params)(x)
+        x = convolution(filters, (3, 3), strides=strides, name=conv_name + '2', **conv_params)(x)
 
         if group_norm:
             x = GroupNormalization(groups=32, axis=-1, name=gn_name + '3')(x)
@@ -180,7 +191,7 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
             x = layers.BatchNormalization(name=bn_name + '3', **bn_params)(x)
 
         x = layers.Activation('relu', name=relu_name + '3')(x)
-        x = layers.Conv2D(filters * 4, (1, 1), name=conv_name + '3', **conv_params)(x)
+        x = convolution(filters * 4, (1, 1), name=conv_name + '3', **conv_params)(x)
 
         # use attention block if defined
         if attention is not None:
@@ -200,7 +211,7 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
 
 
 def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
-           classes=1000, weights='imagenet', last_relu=True, group_norm=True, batch_norm=False, **kwargs):
+           classes=1000, weights='imagenet', last_relu=True, group_norm=True, batch_norm=False, use_separable_convolutions=False, **kwargs):
     """Instantiates the ResNet, SEResNet architecture.
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
@@ -283,15 +294,15 @@ def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
             # first block of first stage without strides because we have maxpooling before
             if block == 0 and stage == 0:
                 x = ResidualBlock(filters, stage, block, strides=(1, 1),
-                                  cut='post', attention=Attention, group_norm=group_norm, batch_norm=batch_norm)(x)
+                                  cut='post', attention=Attention, group_norm=group_norm, batch_norm=batch_norm, use_separable_convolutions=use_separable_convolutions)(x)
 
             elif block == 0:
                 x = ResidualBlock(filters, stage, block, strides=(2, 2),
-                                  cut='post', attention=Attention, group_norm=group_norm, batch_norm=batch_norm)(x)
+                                  cut='post', attention=Attention, group_norm=group_norm, batch_norm=batch_norm, use_separable_convolutions=use_separable_convolutions)(x)
 
             else:
                 x = ResidualBlock(filters, stage, block, strides=(1, 1),
-                                  cut='pre', attention=Attention, group_norm=group_norm, batch_norm=batch_norm)(x)
+                                  cut='pre', attention=Attention, group_norm=group_norm, batch_norm=batch_norm, use_separable_convolutions=use_separable_convolutions)(x)
 
     if group_norm:
         x = GroupNormalization(groups=32, axis=-1, name='gn1')(x)
